@@ -146,5 +146,3 @@ fig <- plot.1 / plot.2 / plot.3  +
                         title = "Distribution of F-IF Standard across Difficulty Levels")
 fig
 
-
-
