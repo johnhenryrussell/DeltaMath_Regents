@@ -232,6 +232,9 @@ SSE.PLOT <- plot.1 / plot.2 / plot.3  +
                         title = "Distribution of A-SSE Standard across Difficulty Levels")
 SSE.PLOT 
 
+## We see that most of the easy questions come from A-SSE.A. However, all difficulty levels contain A-SSE.A in
+## abundance. It would be interesting to examine what makes a question easy vs. hard in A-SSE.A.
+
 ## F-BF ##
 
 hard.BF <- filter(hard, Standard == "F-BF")
@@ -434,7 +437,7 @@ library(clValid)
 
 d <- dist(t(q_dtm.a), method = "euclidian")
 fit.a <- hclust(d=d, method = "complete")
-plot(fit.a, hang = -1)
+plot(fit.a, hang = -1, main = "A-APR.A")
 groups <- cutree(fit.a, k = 7)   # "k=" defines the number of clusters you are using
 rect.hclust(fit.a, k = 7, border = "red") # draw dendogram with red borders around the 6 clusters
 dunn(d, groups)
@@ -442,7 +445,7 @@ dunn(d, groups)
 
 d <- dist(t(q_dtm.b), method = "euclidian")
 fit.b <- hclust(d=d, method = "complete")
-plot(fit.b, hang = -1)
+plot(fit.b, hang = -1, main = "A-APR.B")
 groups <- cutree(fit.b, k = 4)   # "k=" defines the number of clusters you are using
 rect.hclust(fit.b, k = 4, border = "red") # draw dendogram with red borders around the 6 clustersa.
 dunn(d, groups)
@@ -562,6 +565,15 @@ q_dtm.d <- DocumentTermMatrix(q_corpus.d)
 library(cluster)
 library(clValid)
 
+# for (x in 2:50) {
+#         d <- dist(t(q_dtm.c), method = "euclidian")
+#         fit.c <- hclust(d=d, method = "complete")
+#         plot(fit.c, hang = -1, main = "A-REI.C")
+#         groups <- cutree(fit.c, k = x)   # "k=" defines the number of clusters you are using
+#         rect.hclust(fit.c, k = x, border = "red") # draw dendogram with red borders around the 6 clusters
+#         cat("X:", x, "dunn:", dunn(d, groups), "" )
+# }
+
 # A-REI.A #
 d <- dist(t(q_dtm.a), method = "euclidian")
 fit.a <- hclust(d=d, method = "complete")
@@ -574,16 +586,16 @@ dunn(d, groups)
 d <- dist(t(q_dtm.b), method = "euclidian")
 fit.b <- hclust(d=d, method = "complete")
 plot(fit.b, hang = -1, main = "A-REI.B")
-groups <- cutree(fit.b, k = 5)   # "k=" defines the number of clusters you are using
-rect.hclust(fit.b, k = 5, border = "red") # draw dendogram with red borders around the 6 clusters.
+groups <- cutree(fit.b, k = 13)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.b, k = 13, border = "red") # draw dendogram with red borders around the 6 clusters.
 dunn(d, groups)
 
 # A-REI.C #
 d <- dist(t(q_dtm.c), method = "euclidian")
 fit.c <- hclust(d=d, method = "complete")
 plot(fit.c, hang = -1, main = "A-REI.C")
-groups <- cutree(fit.c, k = 9)   # "k=" defines the number of clusters you are using
-rect.hclust(fit.c, k = 9, border = "red") # draw dendogram with red borders around the 6 clusters
+groups <- cutree(fit.c, k = 16)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.c, k = 16, border = "red") # draw dendogram with red borders around the 6 clusters
 dunn(d, groups)
 
 # A-REI.D #
@@ -595,12 +607,372 @@ rect.hclust(fit.d, k = 9, border = "red") # draw dendogram with red borders arou
 dunn(d, groups)
 
 
+
+
 #######################################
 ############### A-SSE #################
 #######################################
 
-a <- filter(df, Standard.Cluster == "A-SSE.A")
-b <- filter(df, Standard.Cluster == "A-SSE.B")
+# a <- filter(df, Standard.Cluster == "A-SSE.A")
+# b <- filter(df, Standard.Cluster == "A-SSE.B")
+
+a <- filter(easy, Standard.Cluster == "A-SSE.A")
+b <- filter(hard, Standard.Cluster == "A-SSE.A")
+
+## CLEAN AND STANDARDIZE ##
+
+library(tm)
+
+q_corpus.a <-
+        VCorpus(VectorSource(a$Question.Text))
+
+q_corpus.b <-
+        VCorpus(VectorSource(b$Question.Text))
+
+
+
+## LOWER CASE ##
+
+q_corpus.a <-
+        tm_map(q_corpus.a, content_transformer(tolower))
+
+q_corpus.b <-
+        tm_map(q_corpus.b, content_transformer(tolower))
+
+## Remove Numbers ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeNumbers)
+
+q_corpus.b<- tm_map(q_corpus.b, removeNumbers)
+
+## REMOVE STOP WORDS ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeWords, stopwords())
+
+q_corpus.b <- tm_map(q_corpus.b, removeWords, stopwords())
+
+# remove punctuation #
+
+replacePunctuation <- function(x) {
+        gsub("[[:punct:]]+", " ", x)
+}
+
+q_corpus.a <-
+        tm_map(q_corpus.a, replacePunctuation)
+
+q_corpus.b <-
+        tm_map(q_corpus.b, replacePunctuation)
+
+#  remove white spaces #
+
+q_corpus.a <- tm_map(q_corpus.a , stripWhitespace)
+
+q_corpus.b <- tm_map(q_corpus.b , stripWhitespace)
+
+# convert to plain text #
+
+q_corpus.a <- tm_map(q_corpus.a, PlainTextDocument)
+
+q_corpus.b <- tm_map(q_corpus.b, PlainTextDocument)
+
+# create Document Term Matrix #
+
+q_dtm.a <- DocumentTermMatrix(q_corpus.a)
+q_dtm.a
+
+q_dtm.b <- DocumentTermMatrix(q_corpus.b, control=list(bounds = list(global = c(1, Inf))))
+q_dtm.b
+
+# library(topicmodels)
+# library(ldatuning)
+# 
+# topicmodel <- LDA(q_dtm.a, k=3, method="Gibbs")
+# tmresult <- posterior(topicmodel)
+# 
+# attributes(tmresult)
+# beta <- tmresult$terms
+# dim(beta)
+# 
+# terms(topicmodel, 10)
+# ## HEIRARCHAL CLUSTERING OF TEXT ##
+# library(cluster)
+# library(clValid)
+
+# for (x in 2:50) {
+#         d <- dist(t(q_dtm.b), method = "euclidian")
+#         fit.b <- hclust(d=d, method = "complete")
+#         plot(fit.b, hang = -1, main = "A-SSE.B hard")
+#         groups <- cutree(fit.b, k = x)   # "k=" defines the number of clusters you are using
+#         rect.hclust(fit.b, k = x, border = "red") # draw dendogram with red borders around the 6 clustersa.
+#         cat("X:", x, "dunn:", dunn(d, groups), "" )
+# }
+
+d <- dist(t(q_dtm.a), method = "euclidian")
+fit.a <- hclust(d=d, method = "complete")
+plot(fit.a, hang = -1, main="A-SSE.A easy")
+groups <- cutree(fit.a, k = 9)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.a, k = 9, border = "red") # draw dendogram with red borders around the 6 clusters
+dunn(d, groups)
+findAssocs(q_dtm.a, terms = c("leading", "product", "rate", "area", "tickets"), corlimit = 0.4)
+
+d <- dist(t(q_dtm.b), method = "euclidian")
+fit.b <- hclust(d=d, method = "complete")
+plot(fit.b, hang = -1, main = "A-SSE.B hard")
+groups <- cutree(fit.b, k = 10)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.b, k = 10, border = "red") # draw dendogram with red borders around the 6 clustersa.
+dunn(d, groups)
+findAssocs(q_dtm.b, terms = c("value", "hours", "expressed", "identify"), corlimit= .4)
+
+
+#######################################
+############### F-BF ##################
+#######################################
+
+a <- filter(df, Standard.Cluster == "F-BF.A")
+b <- filter(df, Standard.Cluster == "F-BF.B")
+
+
+## CLEAN AND STANDARDIZE ##
+
+library(tm)
+
+q_corpus.a <-
+        VCorpus(VectorSource(a$Question.Text))
+
+q_corpus.b <-
+        VCorpus(VectorSource(b$Question.Text))
+
+
+
+## LOWER CASE ##
+
+q_corpus.a <-
+        tm_map(q_corpus.a, content_transformer(tolower))
+
+q_corpus.b <-
+        tm_map(q_corpus.b, content_transformer(tolower))
+
+## Remove Numbers ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeNumbers)
+
+q_corpus.b<- tm_map(q_corpus.b, removeNumbers)
+
+## REMOVE STOP WORDS ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeWords, stopwords())
+
+q_corpus.b <- tm_map(q_corpus.b, removeWords, stopwords())
+
+# remove punctuation #
+
+replacePunctuation <- function(x) {
+        gsub("[[:punct:]]+", " ", x)
+}
+
+q_corpus.a <-
+        tm_map(q_corpus.a, replacePunctuation)
+
+q_corpus.b <-
+        tm_map(q_corpus.b, replacePunctuation)
+
+#  remove white spaces #
+
+q_corpus.a <- tm_map(q_corpus.a , stripWhitespace)
+
+q_corpus.b <- tm_map(q_corpus.b , stripWhitespace)
+
+# convert to plain text #
+
+q_corpus.a <- tm_map(q_corpus.a, PlainTextDocument)
+
+q_corpus.b <- tm_map(q_corpus.b, PlainTextDocument)
+
+# create Document Term Matrix #
+
+q_dtm.a <- DocumentTermMatrix(q_corpus.a, control=list(bounds = list(global = c(1, Inf))))
+q_dtm.a
+
+q_dtm.b <- DocumentTermMatrix(q_corpus.b, control=list(bounds = list(global = c(1, Inf))))
+q_dtm.b
+
+
+
+# for (x in 2:50) {
+#         d <- dist(t(q_dtm.b), method = "euclidian")
+#         fit.b <- hclust(d=d, method = "complete")
+#         plot(fit.b, hang = -1, main = "F-BF.B")
+#         groups <- cutree(fit.b, k = x)   # "k=" defines the number of clusters you are using
+#         rect.hclust(fit.b, k = x, border = "red") # draw dendogram with red borders around the 6 clustersa.
+#         cat("X:", x, "dunn:", dunn(d, groups), "" )
+# }
+
+d <- dist(t(q_dtm.a), method = "euclidian")
+fit.a <- hclust(d=d, method = "complete")
+plot(fit.a, hang = -1, main="F-BF.A")
+groups <- cutree(fit.a, k = 13)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.a, k = 13, border = "red") # draw dendogram with red borders around the 6 clusters
+dunn(d, groups)
+findAssocs(q_dtm.a, terms = c("ammount", "determine", "rate","yield"), corlimit= 0.4)
+
+d <- dist(t(q_dtm.b), method = "euclidian")
+fit.b <- hclust(d=d, method = "complete")
+plot(fit.b, hang = -1, main = "F-BF.B")
+groups <- cutree(fit.b, k = 2)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.b, k = 2, border = "red") # draw dendogram with red borders around the 6 clustersa.
+dunn(d, groups)
+findAssocs(q_dtm.b, terms = c("function", "line", "expression", "shifted"), corlimit= 0.4)
+
+###########################
+##########= F-IF ##########
+###########################
+
+a <- filter(df, Standard.Cluster == "F-IF.A")
+b <- filter(df, Standard.Cluster == "F-IF.B")
+c <- filter(df, Standard.Cluster == "F-IF.C")
+
+## CLEAN AND STANDARDIZE ##
+
+library(tm)
+
+q_corpus.a <-
+        VCorpus(VectorSource(a$Question.Text))
+
+q_corpus.b <-
+        VCorpus(VectorSource(b$Question.Text))
+
+q_corpus.c <-
+        VCorpus(VectorSource(c$Question.Text))
+
+
+## LOWER CASE ##
+
+q_corpus.a <-
+        tm_map(q_corpus.a, content_transformer(tolower))
+
+q_corpus.b <-
+        tm_map(q_corpus.b, content_transformer(tolower))
+
+q_corpus.c <-
+        tm_map(q_corpus.c, content_transformer(tolower))
+
+
+
+## Remove Numbers ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeNumbers)
+
+q_corpus.b<- tm_map(q_corpus.b, removeNumbers)
+
+q_corpus.c <- tm_map(q_corpus.c, removeNumbers)
+
+
+
+## REMOVE STOP WORDS ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeWords, stopwords())
+
+q_corpus.b <- tm_map(q_corpus.b, removeWords, stopwords())
+
+q_corpus.c <- tm_map(q_corpus.c, removeWords, stopwords())
+
+
+
+
+# remove punctuation #
+
+replacePunctuation <- function(x) {
+        gsub("[[:punct:]]+", " ", x)
+}
+
+q_corpus.a <-
+        tm_map(q_corpus.a, replacePunctuation)
+
+q_corpus.b <-
+        tm_map(q_corpus.b, replacePunctuation)
+
+q_corpus.c <-
+        tm_map(q_corpus.c, replacePunctuation)
+
+
+
+#  remove white spaces #
+
+q_corpus.a <- tm_map(q_corpus.a , stripWhitespace)
+
+q_corpus.b <- tm_map(q_corpus.b , stripWhitespace)
+
+q_corpus.c <- tm_map(q_corpus.c , stripWhitespace)
+
+
+
+# convert to plain text #
+
+q_corpus.a <- tm_map(q_corpus.a, PlainTextDocument)
+
+q_corpus.b <- tm_map(q_corpus.b, PlainTextDocument)
+
+q_corpus.c <- tm_map(q_corpus.c, PlainTextDocument)
+
+
+
+# create Document Term Matrix #
+
+q_dtm.a <- DocumentTermMatrix(q_corpus.a, control=list(bounds = list(global = c(2, Inf))))
+
+q_dtm.b <- DocumentTermMatrix(q_corpus.b)
+
+q_dtm.c <- DocumentTermMatrix(q_corpus.c)
+
+
+
+## HEIRARCHAL CLUSTERING OF TEXT ##
+
+library(cluster)
+library(clValid)
+
+# for (x in 2:50) {
+#         d <- dist(t(q_dtm.c), method = "euclidian")
+#         fit.c <- hclust(d=d, method = "complete")
+#         plot(fit.c, hang = -1, main = "F-IF.C")
+#         groups <- cutree(fit.c, k = x)   # "k=" defines the number of clusters you are using
+#         rect.hclust(fit.c, k = x, border = "red") # draw dendogram with red borders around the 6 clusters
+#         cat("X:", x, "dunn:", dunn(d, groups), "" )
+# }
+
+# F-IF.A #
+d <- dist(t(q_dtm.a), method = "euclidian")
+fit.a <- hclust(d=d, method = "complete")
+plot(fit.a, hang = -1, main = "F-IF.A")
+groups <- cutree(fit.a, k = 3)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.a, k = 3, border = "red") # draw dendogram with red borders around the 6 clusters
+dunn(d, groups)
+
+# F-IF.B #
+d <- dist(t(q_dtm.b), method = "euclidian")
+fit.b <- hclust(d=d, method = "complete")
+plot(fit.b, hang = -1, main = "F-IF.B")
+groups <- cutree(fit.b, k = 3)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.b, k = 3, border = "red") # draw dendogram with red borders around the 6 clusters.
+dunn(d, groups)
+findAssocs(q_dtm.b, terms = c("line", "represent"), corlimit= 0.4)
+
+
+# F-IF.C #
+d <- dist(t(q_dtm.c), method = "euclidian")
+fit.c <- hclust(d=d, method = "complete")
+plot(fit.c, hang = -1, main = "F-IF.C")
+groups <- cutree(fit.c, k = 13)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.c, k = 13, border = "red") # draw dendogram with red borders around the 6 clusters
+dunn(d, groups)
+
+
+#######################################
+############### F-LE #################
+#######################################
+
+a <- filter(df, Standard.Cluster == "F-LE.A")
+b <- filter(df, Standard.Cluster == "F-LE.B")
 
 
 ## CLEAN AND STANDARDIZE ##
@@ -660,19 +1032,18 @@ q_corpus.b <- tm_map(q_corpus.b, PlainTextDocument)
 # create Document Term Matrix #
 
 q_dtm.a <- DocumentTermMatrix(q_corpus.a, control=list(bounds = list(global = c(2, Inf))))
-q_dtm.a
 
 q_dtm.b <- DocumentTermMatrix(q_corpus.b, control=list(bounds = list(global = c(2, Inf))))
-q_dtm.b
 
 ## HEIRARCHAL CLUSTERING OF TEXT ##
+
 library(cluster)
 library(clValid)
 
 # for (x in 2:50) {
 #         d <- dist(t(q_dtm.b), method = "euclidian")
 #         fit.b <- hclust(d=d, method = "complete")
-#         plot(fit.b, hang = -1)
+#         plot(fit.b, hang = -1, main = "F-LE.B")
 #         groups <- cutree(fit.b, k = x)   # "k=" defines the number of clusters you are using
 #         rect.hclust(fit.b, k = x, border = "red") # draw dendogram with red borders around the 6 clustersa.
 #         cat("X:", x, "dunn:", dunn(d, groups), "" )
@@ -680,14 +1051,157 @@ library(clValid)
 
 d <- dist(t(q_dtm.a), method = "euclidian")
 fit.a <- hclust(d=d, method = "complete")
-plot(fit.a, hang = -1, main="A-SSE.A")
-groups <- cutree(fit.a, k = 12)   # "k=" defines the number of clusters you are using
-rect.hclust(fit.a, k = 12, border = "red") # draw dendogram with red borders around the 6 clusters
+plot(fit.a, hang = -1, main = "F-LE.A")
+groups <- cutree(fit.a, k = 14)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.a, k = 14, border = "red") # draw dendogram with red borders around the 6 clusters
+dunn(d, groups)
 
 
 d <- dist(t(q_dtm.b), method = "euclidian")
 fit.b <- hclust(d=d, method = "complete")
-plot(fit.b, hang = -1, main = "A-SSE.B")
-groups <- cutree(fit.b, k = 7)   # "k=" defines the number of clusters you are using
-rect.hclust(fit.b, k = 7, border = "red") # draw dendogram with red borders around the 6 clustersa.
+plot(fit.b, hang = -1, main = "F-LE.B")
+groups <- cutree(fit.b, k = 3)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.b, k = 3, border = "red") # draw dendogram with red borders around the 6 clustersa.
+dunn(d, groups)
+
+###########################
+##########= S-ID ##########
+###########################
+
+a <- filter(df, Standard.Cluster == "S-ID.A")
+b <- filter(df, Standard.Cluster == "S-ID.B")
+c <- filter(df, Standard.Cluster == "S-ID.C")
+
+## CLEAN AND STANDARDIZE ##
+
+library(tm)
+
+q_corpus.a <-
+        VCorpus(VectorSource(a$Question.Text))
+
+q_corpus.b <-
+        VCorpus(VectorSource(b$Question.Text))
+
+q_corpus.c <-
+        VCorpus(VectorSource(c$Question.Text))
+
+
+## LOWER CASE ##
+
+q_corpus.a <-
+        tm_map(q_corpus.a, content_transformer(tolower))
+
+q_corpus.b <-
+        tm_map(q_corpus.b, content_transformer(tolower))
+
+q_corpus.c <-
+        tm_map(q_corpus.c, content_transformer(tolower))
+
+
+
+## Remove Numbers ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeNumbers)
+
+q_corpus.b<- tm_map(q_corpus.b, removeNumbers)
+
+q_corpus.c <- tm_map(q_corpus.c, removeNumbers)
+
+
+
+## REMOVE STOP WORDS ##
+
+q_corpus.a <- tm_map(q_corpus.a, removeWords, stopwords())
+
+q_corpus.b <- tm_map(q_corpus.b, removeWords, stopwords())
+
+q_corpus.c <- tm_map(q_corpus.c, removeWords, stopwords())
+
+
+
+
+# remove punctuation #
+
+replacePunctuation <- function(x) {
+        gsub("[[:punct:]]+", " ", x)
+}
+
+q_corpus.a <-
+        tm_map(q_corpus.a, replacePunctuation)
+
+q_corpus.b <-
+        tm_map(q_corpus.b, replacePunctuation)
+
+q_corpus.c <-
+        tm_map(q_corpus.c, replacePunctuation)
+
+
+
+#  remove white spaces #
+
+q_corpus.a <- tm_map(q_corpus.a , stripWhitespace)
+
+q_corpus.b <- tm_map(q_corpus.b , stripWhitespace)
+
+q_corpus.c <- tm_map(q_corpus.c , stripWhitespace)
+
+
+
+# convert to plain text #
+
+q_corpus.a <- tm_map(q_corpus.a, PlainTextDocument)
+
+q_corpus.b <- tm_map(q_corpus.b, PlainTextDocument)
+
+q_corpus.c <- tm_map(q_corpus.c, PlainTextDocument)
+
+
+
+# create Document Term Matrix #
+
+q_dtm.a <- DocumentTermMatrix(q_corpus.a, control=list(bounds = list(global = c(2, Inf))))
+
+q_dtm.b <- DocumentTermMatrix(q_corpus.b)
+
+q_dtm.c <- DocumentTermMatrix(q_corpus.c)
+
+
+
+## HEIRARCHAL CLUSTERING OF TEXT ##
+
+library(cluster)
+library(clValid)
+# 
+# for (x in 2:50) {
+#         d <- dist(t(q_dtm.c), method = "euclidian")
+#         fit.c <- hclust(d=d, method = "complete")
+#         plot(fit.c, hang = -1, main = "S-ID.C")
+#         groups <- cutree(fit.c, k = x)   # "k=" defines the number of clusters you are using
+#         rect.hclust(fit.c, k = x, border = "red") # draw dendogram with red borders around the 6 clusters
+#         cat("X:", x, "dunn:", dunn(d, groups), "" )
+# }
+
+# S-ID.A #
+d <- dist(t(q_dtm.a), method = "euclidian")
+fit.a <- hclust(d=d, method = "complete")
+plot(fit.a, hang = -1, main = "S-ID.A")
+groups <- cutree(fit.a, k = 8)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.a, k = 8, border = "red") # draw dendogram with red borders around the 6 clusters
+dunn(d, groups)
+
+# S-ID.B #
+d <- dist(t(q_dtm.b), method = "euclidian")
+fit.b <- hclust(d=d, method = "complete")
+plot(fit.b, hang = -1, main = "S-ID.B")
+groups <- cutree(fit.b, k = 10)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.b, k = 10, border = "red") # draw dendogram with red borders around the 6 clusters.
+dunn(d, groups)
+
+
+# S-ID.C #
+d <- dist(t(q_dtm.c), method = "euclidian")
+fit.c <- hclust(d=d, method = "complete")
+plot(fit.c, hang = -1, main = "S-ID.C")
+groups <- cutree(fit.c, k = 17)   # "k=" defines the number of clusters you are using
+rect.hclust(fit.c, k = 17, border = "red") # draw dendogram with red borders around the 6 clusters
 dunn(d, groups)
