@@ -8,6 +8,8 @@ library(ggplot2)
 library(dplyr)
 library(knitr)
 library(patchwork)
+library(gt)
+library(gtExtras)
 
 df <- read.csv("deltamathexcel.csv", header = TRUE)
 
@@ -15,13 +17,14 @@ df <- na.omit(df)
 
 attach(df)
 
-df.table <- df %>% select(Question.Number, Standard, Percentage.Correct)
-df.table <- slice(df.table, c(5,24,23,75,38,11))
+df.table <- df %>% select(Date, Question.Number, Standard, Cluster,  Percentage.Correct, Question.Text)
+df.table <- slice(df.table, c(5,24,23,75,38,11, 64, 81, 55, 61, 105, 200, 14, 17, 28))
 
-library(gt)
-library(gtExtras)
+df.table %>% gt() %>% gt_theme_pff()
 
 kable(df.table, format= "markdown")
+
+
 
 ########################################
 ## CLASSIFY DATA BY PERCENTAGE CORRECT ##
@@ -84,6 +87,33 @@ full.percent.plot +
         plot_annotation(theme = theme_gray(base_family = 'mono'),
                         title = "Test Percentage by Standard")
 
+full.percent.plot <- ggplot(data = df, aes(x=Standard.Cluster)) + 
+        geom_bar(aes(fill = Standard.Cluster, y= (..count..)/sum(..count..))) + 
+        labs(title = "", x="", y="Percent") + 
+        guides(fill="none") +
+        scale_y_continuous(breaks = c(0, .05, .1), labels = c("0%", "5%", "10%"))
+
+full.percent.plot + 
+        plot_annotation(theme = theme_gray(base_family = 'mono'),
+                        title = "Test Percentage by Standard Cluster")
+
+## percentage correct ##
+
+percent.correct.plot <- ggplot(df, aes(x=reorder(Standard, -Percentage.Correct), y=Percentage.Correct)) + 
+        geom_bar(aes(fill = Standard), stat = "summary", fun = "mean") + 
+        guides(fill="none") +
+        scale_y_continuous(labels=c("0%", "10%", "20%", "30%", "40%", "50%"))
+
+percent.correct.plot + plot_annotation(theme = theme_gray(base_family = 'mono'),
+                                       title = "Percentage Correct by Standard")
+
+percent.correct.plot <- ggplot(df, aes(x=reorder(Standard.Cluster, -Percentage.Correct), y=Percentage.Correct)) + 
+        geom_bar(aes(fill = Standard.Cluster), stat = "summary", fun = "mean") + 
+        guides(fill="none") + scale_y_continuous(labels = c("0%", "20%", "40%", "60%"))
+
+percent.correct.plot + plot_annotation(theme = theme_gray(base_family = 'mono'),
+                                       title = "Percentage Correct by Standard.Cluster")
+
 ## difficulty percentage ##
 
 diff.percent.plot <- ggplot(data = df, aes(x=factor(Difficulty, level = c("Easy", "Normal", "Hard")))) + 
@@ -99,12 +129,15 @@ diff.percent.plot +
 percent.df <- data.frame(c("Easy", "Normal", "Hard"), c("22%", "45%", "33%"))
 colnames(percent.df) <- c("Difficulty", "Percentage")
 percent.df
+
+
 ## COMPARING STANDARD VS DIFFICULTY LEVELS ##
 
 library(patchwork)
 library(ggplot2)
+library(forcats)
 
-easy.plot <- ggplot(data = easy, aes(x=Standard)) + 
+easy.plot <- ggplot(data = easy, aes(x=fct_infreq(Standard))) + 
         geom_bar(aes(fill = Standard, y= (..count..)/sum(..count..))) + 
         labs(title = "Easy", x="", y="Percent") + 
         guides(fill="none") + 
@@ -112,7 +145,7 @@ easy.plot <- ggplot(data = easy, aes(x=Standard)) +
                            labels=c("0%", "10%", "20%", "30%"),
                            limits = c(0,.35)) 
 
-normal.plot <- ggplot(data = normal, aes(x=Standard)) + 
+normal.plot <- ggplot(data = normal, aes(x=fct_infreq(Standard))) + 
         geom_bar(aes(fill = Standard, y= (..count..)/sum(..count..))) + 
         labs(title="Normal", x="", y="Percent") +
         guides(fill="none") + 
@@ -120,19 +153,49 @@ normal.plot <- ggplot(data = normal, aes(x=Standard)) +
                            labels=c("0%", "10%", "20%", "30%"),
                            limits = c(0,.35))
 
-hard.plot <- ggplot(data = hard, aes(x=Standard)) + 
+hard.plot <- ggplot(data = hard, aes(x=fct_infreq(Standard))) + 
         geom_bar(aes(fill = Standard, y= (..count..)/sum(..count..))) + 
         labs(title = "Hard", x="", y="Percent") + 
         guides(fill="none") + 
         scale_y_continuous(breaks = c(0, .10, .20, .3), 
                            labels=c("0%", "10%", "20%", "30%"),
-                           limits = c(0,.35)) + 
-        scale_x_discrete(limits = c("A-APR", "A-CED", "A-REI", "A-SSE", "F-BF", "F-IF", "F-LE", "N-Q", "N-RN", "S-ID"))
-
+                           limits = c(0,.35))
 
 plot.1 <- easy.plot / normal.plot/ hard.plot + 
         plot_annotation(theme = theme_gray(base_family = 'mono'),
                         title = "Distribution of Standards across Difficulty Levels")
+
+plot.1
+
+
+
+easy.plot <- ggplot(data = easy, aes(x=fct_infreq(Standard.Cluster))) + 
+        geom_bar(aes(fill = Standard.Cluster, y= (..count..)/sum(..count..))) + 
+        labs(title = "Easy", x="", y="Percent") + 
+        guides(fill="none") + 
+        scale_y_continuous(breaks = c(0, .10, .20, .3), 
+                           labels=c("0%", "10%", "20%", "30%"),
+                           limits = c(0,.35))
+normal.plot <- ggplot(data = normal, aes(x=fct_infreq(Standard.Cluster))) + 
+        geom_bar(aes(fill = Standard.Cluster, y= (..count..)/sum(..count..))) + 
+        labs(title="Normal", x="", y="Percent") +
+        guides(fill="none") + 
+        scale_y_continuous(breaks = c(0, .10, .20, .3), 
+                           labels=c("0%", "10%", "20%", "30%"),
+                           limits = c(0,.35))
+
+hard.plot <- ggplot(data = hard, aes(x=fct_infreq(Standard.Cluster))) + 
+        geom_bar(aes(fill = Standard.Cluster, y= (..count..)/sum(..count..))) + 
+        labs(title = "Hard", x="", y="Percent") + 
+        guides(fill="none") + 
+        scale_y_continuous(breaks = c(0, .10, .20, .3), 
+                           labels=c("0%", "10%", "20%", "30%"),
+                           limits = c(0,.35)) 
+
+
+plot.1 <- easy.plot / normal.plot/ hard.plot + 
+        plot_annotation(theme = theme_gray(base_family = 'mono'),
+                        title = "Distribution of Standard.Cluster across Difficulty Levels")
 
 plot.1
 
@@ -690,7 +753,7 @@ q_dtm.b
 # tmresult <- posterior(topicmodel)
 # 
 # attributes(tmresult)
-# beta <- tmresult$terms
+# beta <- tmresult$termshttp://127.0.0.1:22075/graphics/plot_zoom_png?width=1718&height=1360
 # dim(beta)
 # 
 # terms(topicmodel, 10)
@@ -717,7 +780,7 @@ findAssocs(q_dtm.a, terms = c("leading", "product", "rate", "area", "tickets"), 
 
 d <- dist(t(q_dtm.b), method = "euclidian")
 fit.b <- hclust(d=d, method = "complete")
-plot(fit.b, hang = -1, main = "A-SSE.B hard")
+plot(fit.b, hang = -1, main = "A-SSE.A hard")
 groups <- cutree(fit.b, k = 10)   # "k=" defines the number of clusters you are using
 rect.hclust(fit.b, k = 10, border = "red") # draw dendogram with red borders around the 6 clustersa.
 dunn(d, groups)

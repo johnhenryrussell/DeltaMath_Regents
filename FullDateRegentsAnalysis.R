@@ -99,11 +99,11 @@ q_corpus_clean.challenging <-
 q_corpus_clean <- tm_map(q_corpus_clean, removeWords, stopwords())
 
 q_corpus_clean.straightforward <-
-        tm_map(q_corpus_clean.straightforward, removeWords, stopwords())
+       tm_map(q_corpus_clean.straightforward, removeWords, stopwords())
 q_corpus_clean.average <-
-        tm_map(q_corpus_clean.average, removeWords, stopwords())
+       tm_map(q_corpus_clean.average, removeWords, stopwords())
 q_corpus_clean.challenging <-
-        tm_map(q_corpus_clean.challenging, removeWords, stopwords())
+       tm_map(q_corpus_clean.challenging, removeWords, stopwords())
 
 q_corpus_clean.straightforward <-
         tm_map(
@@ -209,19 +209,50 @@ wordcloud(
         rot.per = 0
 )
 
+## straightforward ##
 
-assoc_straightforward <- findAssocs(q_dtm.straightforward, terms = findFreqTerms(q_dtm.straightforward, lowfreq = 9), corlimit= 0.3)
+q_cc.straightforward <-
+        tm_map(q_corpus.straightforward, removeNumbers)
 
-assoc_average <- findAssocs(q_dtm.average, terms = findFreqTerms(q_dtm.average, lowfreq = 15), corlimit= 0.3)
+q_dtm.straightforward.new <-
+        DocumentTermMatrix(q_cc.straightforward)
 
-assoc_challenging <- findAssocs(q_dtm.challenging, terms = findFreqTerms(q_dtm.challenging, lowfreq = 9), corlimit= 0.3)
+## average ##
 
-library(syuzhet)
-library(lubridate)
-library(ggplot2)
-library(scales)
-library(reshape2)
-library(dplyr)
+q_cc.average <-
+        tm_map(q_corpus.average, removeNumbers)
 
-get_nrc_sentiment(q_raw$Question.Text)
+q_dtm.average.new <-
+        DocumentTermMatrix(q_cc.average)
 
+## challenging ##
+
+q_cc.challenging <-
+        tm_map(q_corpus.challenging, removeNumbers)
+
+#q_cc.challenging <-
+     #   tm_map(q_cc.challenging, replacePunctuation)
+
+
+q_dtm.challenging.new <-
+        DocumentTermMatrix(q_cc.challenging)
+
+## word association ##
+library(stringr)
+
+assoc_straightforward <- findAssocs(q_dtm.straightforward.new, terms = findFreqTerms(q_dtm.straightforward, lowfreq = 9), corlimit= 0.4)
+
+assoc_average <- findAssocs(q_dtm.average.new, terms = findFreqTerms(q_dtm.average, lowfreq = 15), corlimit= 0.4)
+
+assoc_challenging <- findAssocs(q_dtm.challenging.new, terms = findFreqTerms(q_dtm.challenging, lowfreq = 9), corlimit= 0.4)
+
+
+s<-sum(str_count(straightforward$Question.Text, "not|true|false"))
+a<-sum(str_count(average$Question.Text, "not|true|false"))
+c<-sum(str_count(challenging$Question.Text, "not|true|false"))
+
+(s/nrow(straightforward))*100
+
+(a/nrow(average))*100
+
+(c/nrow(challenging))*100
