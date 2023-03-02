@@ -27,6 +27,19 @@ def generate_cluster_list(question_data, k: int) -> list:
     return clust_list
 
 
+def get_difficulty():
+    difficulty = input("Enter difficulty (EASY, NORMAL, HARD, or ALL): ")
+    difficulty = difficulty.lower()
+    if difficulty == "easy":
+        return "easy_weight"
+    elif difficulty == "normal":
+        return "normal_weight"
+    elif difficulty == "hard":
+        return "hard_weight"
+    else:
+        return 0
+
+
 def choose_questions(chosen_weight, question_data, k):
     """
     Chooses k questions from a dataframe based on their assigned weights.

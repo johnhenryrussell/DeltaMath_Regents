@@ -21,7 +21,11 @@ from difficulty_weight_functions import (
     get_weight_and_question_lists,
     calculate_and_add_weights,
 )
-from question_selector_functions import generate_cluster_list, choose_questions
+from question_selector_functions import (
+    generate_cluster_list,
+    choose_questions,
+    get_difficulty,
+)
 
 
 if __name__ == "__main__":
@@ -40,4 +44,4 @@ if __name__ == "__main__":
         question_list,
     ) = get_weight_and_question_lists(question_data)
 
-    choose_questions("easy_weight", question_data, 100)
+    choose_questions(get_difficulty(), question_data, 100)
