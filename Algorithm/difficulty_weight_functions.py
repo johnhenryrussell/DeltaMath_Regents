@@ -6,13 +6,15 @@ def calculate_weight(difficulty):
     Returns a tuple of weights for a given difficulty.
 
     Parameters:
-        difficulty (str): The difficulty of the problem, must be one of
+    difficulty (str): The difficulty of the problem, must be one of
         "Easy", "Normal", or "Hard".
 
     Returns:
-        tuple of ints: The weights for the given difficulty, in the order
+    tuple of ints: The weights for the given difficulty, in the order
         (easy_weight, normal_weight, hard_weight).
     """
+
+    # Define weights for each difficulty level
     if difficulty == "Easy":
         return (75, 20, 0)
     elif difficulty == "Normal":
@@ -20,6 +22,7 @@ def calculate_weight(difficulty):
     elif difficulty == "Hard":
         return (0, 10, 75)
     else:
+        # If the difficulty level is not recognized, return 0 weights for all levels
         return (0, 0, 0)
 
 
@@ -42,3 +45,21 @@ def get_weight_and_question_lists(data_frame):
     question = data_frame["Problem ID"].tolist()
 
     return easy_weight, normal_weight, hard_weight, question
+
+
+def calculate_and_add_weights(dataframe):
+    """
+    Calculates and adds "easy", "normal", and "hard" weights to a pandas DataFrame
+    based on the values in the "Difficulty" column.
+
+    Parameters:
+        dataframe (pandas.DataFrame): The DataFrame to which weights will be added.
+
+    Returns:
+        None
+    """
+    weight_cols = ["easy_weight", "normal_weight", "hard_weight"]
+    weights = dataframe.apply(
+        lambda row: pd.Series(calculate_weight(row["Difficulty"])), axis=1
+    )
+    dataframe[weight_cols] = weights
