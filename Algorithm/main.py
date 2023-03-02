@@ -11,295 +11,32 @@ from data_organization_functions import (
     map_values_to_numbers,
     assign_numbers_to_values,
 )
-
-
-# def read_csv_file(file_path):
-#     """
-#     Reads a CSV file from a given file path and returns a pandas DataFrame.
-
-#     Parameters:
-#         file_path (str): The path of the CSV file to read.
-
-#     Returns:
-#         pandas.DataFrame: A DataFrame containing all columns from the CSV file.
-#     """
-#     # Read the CSV file into a pandas DataFrame
-#     data_frame = pd.read_csv(file_path)
-
-#     # Return the DataFrame
-#     return data_frame
-
-
-# def select_columns(data_frame):
-#     """
-#     Selects specific columns from a pandas DataFrame.
-
-#     Parameters:
-#         data_frame (pandas.DataFrame): The DataFrame to select columns from.
-
-#     Returns:
-#         pandas.DataFrame: A DataFrame containing columns 'Problem ID',
-#         'Accuracy', 'Standard', and 'Cluster'.
-#     """
-#     # Select only the columns we need and create a new DataFrame
-#     question_data = pd.DataFrame(
-#         data_frame, columns=["Problem ID", "Accuracy", "Standard", "Cluster"]
-#     )
-
-#     # Return the new DataFrame
-#     return question_data
-
-
-# def convert_accuracy_to_float(question_data):
-#     """
-#     Converts the 'Accuracy' column of a pandas DataFrame to a float between 0 and 1.
-
-#     Parameters:
-#         question_data (pandas.DataFrame): The DataFrame to convert.
-
-#     Returns:
-#         pandas.DataFrame: The converted DataFrame.
-#     """
-#     # Convert the 'Accuracy' column to a float between 0 and 1
-#     # by removing the percentage sign and dividing by 100
-#     question_data["Accuracy"] = (
-#         question_data["Accuracy"].str.rstrip("%").astype(float) / 100
-#     )
-
-#     # Return the converted DataFrame
-#     return question_data
-
-
-# def read_csv_to_dataframe(file_path):
-#     """
-#     Reads a CSV file from a given file path and returns a pandas DataFrame
-#     with specific columns.
-
-#     Parameters:
-#         file_path (str): The path of the CSV file to read.
-
-#     Returns:
-#         pandas.DataFrame: A DataFrame containing columns 'Problem ID',
-#         'Accuracy', 'Standard', and 'Cluster'.
-#         The 'Accuracy' column is converted to a float between 0 and 1 by
-#         removing the percentage sign and dividing by 100.
-#     """
-#     # Read the CSV file into a pandas DataFrame
-#     data_frame = read_csv_file(file_path)
-
-#     # Select specific columns from the DataFrame
-#     question_data = select_columns(data_frame)
-
-#     # Convert the 'Accuracy' column to a float between 0 and 1
-#     question_data = convert_accuracy_to_float(question_data)
-
-#     # Return the new DataFrame
-#     return question_data
-
-
-# def get_unique_values(data, col_name):
-#     """
-#     Returns a list of unique values in a specified column of a pandas DataFrame.
-
-#     Parameters:
-#         data (pandas.DataFrame): The DataFrame containing the column.
-#         col_name (str): The name of the column to get unique values from.
-
-#     Returns:
-#         A list of unique values in the specified column.
-#     """
-#     return data[col_name].unique().tolist()
-
-
-# def map_values_to_numbers(unique_values):
-#     """
-#     Creates a dictionary that maps each unique value in a list to a unique number.
-
-#     Parameters:
-#         unique_values (list): A list of unique values.
-
-#     Returns:
-#         A dictionary that maps each unique value to a unique number.
-#     """
-#     # Create an empty dictionary to hold the mapping of values to numbers
-#     value_to_number = {}
-
-#     # Loop over the unique values and assign a unique number to each one
-#     for i, val in enumerate(unique_values):
-#         value_to_number[val] = i
-
-#     # Return the dictionary
-#     return value_to_number
-
-
-# def assign_numbers_to_values(question_data, col_name="Cluster"):
-#     """
-#     Assigns a unique number to each distinct value in a specified column of a
-#     pandas DataFrame.
-
-#     Parameters:
-#         question_data (pandas.DataFrame): The DataFrame containing the column to assign
-#         numbers to.
-#         col_name (str): The name of the column to assign numbers to.
-
-#     Returns:
-#         None. The function modifies the DataFrame in place by adding a new
-#         column with the
-#         suffix '_num' to store the assigned numbers.
-#     """
-#     unique_values = get_unique_values(question_data, col_name)
-#     value_to_number = map_values_to_numbers(unique_values)
-#     question_data[f"{col_name}_num"] = question_data[col_name].apply(
-#         lambda x: value_to_number[x]
-#     )
-#     return question_data
-
-
-# def assign_difficulty(question_data):
-#     for i in range(6):
-#         col_edit = question_data.loc[question_data["Cluster_num"] == i]
-#         breaks = jenkspy.jenks_breaks(col_edit["Accuracy"], n_classes=3)
-#         question_data.loc[question_data["Cluster_num"] == i, "Difficulty"] = pd.cut(
-#             col_edit["Accuracy"],
-#             bins=breaks,
-#             labels=["Hard", "Normal", "Easy"],
-#             include_lowest=True,
-#         )
-#     return question_data
-
-
-def assign_difficulty(question_data):
-    """
-    Assigns a difficulty level to each question in the given `question_data`
-    based on the accuracy of responses in each cluster.
-
-    Parameters:
-        question_data (pandas.DataFrame): The DataFrame containing the question data.
-
-    Returns:
-        pandas.DataFrame: The updated DataFrame with the 'Difficulty' column assigned.
-
-    """
-    # Iterate over the clusters in the question data
-    for i in range(6):
-        # Get the subset of the question data corresponding to the current cluster
-        col_edit = get_cluster_data(question_data, i)
-        # Calculate the natural breaks for accuracy within this cluster
-        breaks = jenkspy.jenks_breaks(col_edit["Accuracy"], n_classes=3)
-        # Define the labels for the difficulty levels
-        difficulty_labels = ["Hard", "Normal", "Easy"]
-        # Assign the difficulty levels to the questions in this cluster
-        question_data = assign_cluster_difficulty(
-            question_data, col_edit, breaks, difficulty_labels, i
-        )
-    return question_data
-
-
-def get_cluster_data(question_data, cluster_num):
-    """
-    Returns the subset of `question_data` corresponding to the given `cluster_num`.
-
-    Parameters:
-        question_data (pandas.DataFrame): The DataFrame containing the question data.
-        cluster_num (int): The cluster number for which to retrieve the data.
-
-    Returns:
-        pandas.DataFrame: The subset of `question_data` corresponding to `cluster_num`.
-
-    """
-    return question_data.loc[question_data["Cluster_num"] == cluster_num]
-
-
-def assign_cluster_difficulty(
-    question_data, col_edit, breaks, difficulty_labels, cluster_num
-):
-    """
-    Assigns a difficulty level to each question in the given subset of `question_data`
-    based on the accuracy of responses in that subset.
-
-    Parameters:
-        question_data (pandas.DataFrame): The DataFrame containing the question data.
-        col_edit (pandas.DataFrame): The subset of `question_data` to which difficulty levels will be assigned.
-        breaks (list): The breakpoints for the jenks natural breaks algorithm.
-        difficulty_labels (list): The labels for the difficulty levels to be assigned.
-        cluster_num (int): The cluster number for which difficulty levels are being assigned.
-
-    Returns:
-        pandas.DataFrame: The updated DataFrame with the 'Difficulty' column assigned for the given cluster.
-
-    """
-    question_data.loc[
-        question_data["Cluster_num"] == cluster_num, "Difficulty"
-    ] = pd.cut(
-        col_edit["Accuracy"],
-        bins=breaks,
-        labels=difficulty_labels,
-        include_lowest=True,
-    )
-    return question_data
-
-
-#####################################################
-## FUNCTION FOR EACH DIFFICULTY *arbitrary weight* ##
-#####################################################
-
-
-def calculate_weight(difficulty):
-    """
-    Returns a tuple of weights for a given difficulty.
-
-    Parameters:
-        difficulty (str): The difficulty of the problem, must be one of
-        "Easy", "Normal", or "Hard".
-
-    Returns:
-        tuple of ints: The weights for the given difficulty, in the order
-        (easy_weight, normal_weight, hard_weight).
-    """
-    if difficulty == "Easy":
-        return (75, 20, 0)
-    elif difficulty == "Normal":
-        return (25, 70, 25)
-    elif difficulty == "Hard":
-        return (0, 10, 75)
-    else:
-        return (0, 0, 0)
-
-
-################################
-## ASSIGN WEIGHTS TO EACH ROW ##
-################################
-
-
-#############################
-# CONVERT COLUMNS TO LISTS ##
-#############################
-
-
-def get_weight_and_question_lists(data_frame):
-    """
-    Returns the list of easy weights, normal weights, hard weights, and
-    problem IDs.
-
-    Parameters:
-        data_frame (pandas.DataFrame): The dataframe containing the weights
-        and problem IDs.
-
-    Returns:
-        tuple of list of ints and list of strs: The list of easy weights,
-        normal weights, hard weights, and problem IDs, in that order.
-    """
-    easy_weight = data_frame["easy_weight"].tolist()
-    normal_weight = data_frame["normal_weight"].tolist()
-    hard_weight = data_frame["hard_weight"].tolist()
-    question = data_frame["Problem ID"].tolist()
-
-    return easy_weight, normal_weight, hard_weight, question
-
+from classification_functions import (
+    assign_difficulty,
+    get_cluster_data,
+    assign_cluster_difficulty,
+)
+from difficulty_weight_functions import calculate_weight, get_weight_and_question_lists
 
 # #############################################
 # ## CHOOSE ONE QUESTION FROM GIVEN STANDARD ##
 # #############################################
+
+
+# def generate_cluster_list(k: int) -> list:
+#     """
+#     Generates a list of clusters based on their assigned weights.
+
+#     Parameters:
+#         k (int): The number of clusters to generate.
+
+#     Returns:
+#         list: A list of clusters.
+#     """
+#     NUMBER_LIST = [0, 1, 2, 3, 4, 5]
+#     WEIGHTS = [2.41, 8.69, 2.38, 8.49, 0.36, 2.67]
+#     clust_list = random.choices(numberList, weights=weights, k=k)
+#     return clust_list
 
 
 def choose_questions(question_data, questDiff, k):
@@ -314,7 +51,7 @@ def choose_questions(question_data, questDiff, k):
     Returns:
         list: A list of chosen questions.
     """
-    numberList = [0, 1, 2, 3, 4, 5]
+    numberList = question_data["Cluster_num"].unique().tolist()
     clust_list = random.choices(
         numberList, weights=(2.41, 8.69, 2.38, 8.49, 0.36, 2.67), k=k
     )
