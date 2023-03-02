@@ -6,6 +6,10 @@ from data_organization_functions import (
     read_csv_file,
     select_columns,
     convert_accuracy_to_float,
+    read_csv_to_dataframe,
+    get_unique_values,
+    map_values_to_numbers,
+    assign_numbers_to_values,
 )
 
 
@@ -66,130 +70,172 @@ from data_organization_functions import (
 #     return question_data
 
 
-def read_csv_to_dataframe(file_path):
-    """
-    Reads a CSV file from a given file path and returns a pandas DataFrame
-    with specific columns.
+# def read_csv_to_dataframe(file_path):
+#     """
+#     Reads a CSV file from a given file path and returns a pandas DataFrame
+#     with specific columns.
 
-    Parameters:
-        file_path (str): The path of the CSV file to read.
+#     Parameters:
+#         file_path (str): The path of the CSV file to read.
 
-    Returns:
-        pandas.DataFrame: A DataFrame containing columns 'Problem ID',
-        'Accuracy', 'Standard', and 'Cluster'.
-        The 'Accuracy' column is converted to a float between 0 and 1 by
-        removing the percentage sign and dividing by 100.
-    """
-    # Read the CSV file into a pandas DataFrame
-    data_frame = read_csv_file(file_path)
+#     Returns:
+#         pandas.DataFrame: A DataFrame containing columns 'Problem ID',
+#         'Accuracy', 'Standard', and 'Cluster'.
+#         The 'Accuracy' column is converted to a float between 0 and 1 by
+#         removing the percentage sign and dividing by 100.
+#     """
+#     # Read the CSV file into a pandas DataFrame
+#     data_frame = read_csv_file(file_path)
 
-    # Select specific columns from the DataFrame
-    question_data = select_columns(data_frame)
+#     # Select specific columns from the DataFrame
+#     question_data = select_columns(data_frame)
 
-    # Convert the 'Accuracy' column to a float between 0 and 1
-    question_data = convert_accuracy_to_float(question_data)
+#     # Convert the 'Accuracy' column to a float between 0 and 1
+#     question_data = convert_accuracy_to_float(question_data)
 
-    # Return the new DataFrame
-    return question_data
-
-
-def get_unique_values(data, col_name):
-    """
-    Returns a list of unique values in a specified column of a pandas DataFrame.
-
-    Parameters:
-        data (pandas.DataFrame): The DataFrame containing the column.
-        col_name (str): The name of the column to get unique values from.
-
-    Returns:
-        A list of unique values in the specified column.
-    """
-    return data[col_name].unique().tolist()
+#     # Return the new DataFrame
+#     return question_data
 
 
-def map_values_to_numbers(unique_values):
-    """
-    Creates a dictionary that maps each unique value in a list to a unique number.
+# def get_unique_values(data, col_name):
+#     """
+#     Returns a list of unique values in a specified column of a pandas DataFrame.
 
-    Parameters:
-        unique_values (list): A list of unique values.
+#     Parameters:
+#         data (pandas.DataFrame): The DataFrame containing the column.
+#         col_name (str): The name of the column to get unique values from.
 
-    Returns:
-        A dictionary that maps each unique value to a unique number.
-    """
-    # Create an empty dictionary to hold the mapping of values to numbers
-    value_to_number = {}
-
-    # Loop over the unique values and assign a unique number to each one
-    for i, val in enumerate(unique_values):
-        value_to_number[val] = i
-
-    # Return the dictionary
-    return value_to_number
+#     Returns:
+#         A list of unique values in the specified column.
+#     """
+#     return data[col_name].unique().tolist()
 
 
-def assign_numbers_to_values(question_data, col_name="Cluster"):
-    """
-    Assigns a unique number to each distinct value in a specified column of a
-    pandas DataFrame.
+# def map_values_to_numbers(unique_values):
+#     """
+#     Creates a dictionary that maps each unique value in a list to a unique number.
 
-    Parameters:
-        question_data (pandas.DataFrame): The DataFrame containing the column to assign
-        numbers to.
-        col_name (str): The name of the column to assign numbers to.
+#     Parameters:
+#         unique_values (list): A list of unique values.
 
-    Returns:
-        None. The function modifies the DataFrame in place by adding a new
-        column with the
-        suffix '_num' to store the assigned numbers.
-    """
-    unique_values = get_unique_values(question_data, col_name)
-    value_to_number = map_values_to_numbers(unique_values)
-    question_data[f"{col_name}_num"] = question_data[col_name].apply(
-        lambda x: value_to_number[x]
-    )
-    return question_data
+#     Returns:
+#         A dictionary that maps each unique value to a unique number.
+#     """
+#     # Create an empty dictionary to hold the mapping of values to numbers
+#     value_to_number = {}
+
+#     # Loop over the unique values and assign a unique number to each one
+#     for i, val in enumerate(unique_values):
+#         value_to_number[val] = i
+
+#     # Return the dictionary
+#     return value_to_number
+
+
+# def assign_numbers_to_values(question_data, col_name="Cluster"):
+#     """
+#     Assigns a unique number to each distinct value in a specified column of a
+#     pandas DataFrame.
+
+#     Parameters:
+#         question_data (pandas.DataFrame): The DataFrame containing the column to assign
+#         numbers to.
+#         col_name (str): The name of the column to assign numbers to.
+
+#     Returns:
+#         None. The function modifies the DataFrame in place by adding a new
+#         column with the
+#         suffix '_num' to store the assigned numbers.
+#     """
+#     unique_values = get_unique_values(question_data, col_name)
+#     value_to_number = map_values_to_numbers(unique_values)
+#     question_data[f"{col_name}_num"] = question_data[col_name].apply(
+#         lambda x: value_to_number[x]
+#     )
+#     return question_data
+
+
+# def assign_difficulty(question_data):
+#     for i in range(6):
+#         col_edit = question_data.loc[question_data["Cluster_num"] == i]
+#         breaks = jenkspy.jenks_breaks(col_edit["Accuracy"], n_classes=3)
+#         question_data.loc[question_data["Cluster_num"] == i, "Difficulty"] = pd.cut(
+#             col_edit["Accuracy"],
+#             bins=breaks,
+#             labels=["Hard", "Normal", "Easy"],
+#             include_lowest=True,
+#         )
+#     return question_data
 
 
 def assign_difficulty(question_data):
     """
-    Takes a pandas DataFrame as input and assigns a difficulty level to
-    each data point based on its cluster and accuracy score.
+    Assigns a difficulty level to each question in the given `question_data`
+    based on the accuracy of responses in each cluster.
 
     Parameters:
-        question_data (pandas DataFrame): a pandas DataFrame containing at
-        least the columns "Cluster_num" and "Accuracy".
+        question_data (pandas.DataFrame): The DataFrame containing the question data.
 
     Returns:
-        question_data (pandas DataFrame): a pandas DataFrame with a new column
-        "Difficulty" that assigns a difficulty level to each data point based
-        on its cluster and accuracy score.
+        pandas.DataFrame: The updated DataFrame with the 'Difficulty' column assigned.
 
-    Algorithm:
-        (1) For each cluster in the range 0-5, the function selects the data
-        points in that cluster using boolean indexing.
-
-        (2) Jenks natural breaks optimization is applied to the accuracy
-        scores in that cluster to generate three distinct breakpoints.
-
-        (3) Using the pd.cut() function, the accuracy scores are then labeled
-        as "Hard", "Normal", or "Easy" based on which range they fall in
-        (determined by the breakpoints).
-
-        (4) The "Difficulty" column in the original DataFrame is updated to
-        reflect the new labels for the accuracy scores in that cluster.
-
-        (5) The updated DataFrame is then returned.
     """
+    # Iterate over the clusters in the question data
     for i in range(6):
-        col_edit = question_data.loc[question_data["Cluster_num"] == i]
+        # Get the subset of the question data corresponding to the current cluster
+        col_edit = get_cluster_data(question_data, i)
+        # Calculate the natural breaks for accuracy within this cluster
         breaks = jenkspy.jenks_breaks(col_edit["Accuracy"], n_classes=3)
-        question_data.loc[question_data["Cluster_num"] == i, "Difficulty"] = pd.cut(
-            col_edit["Accuracy"],
-            bins=breaks,
-            labels=["Hard", "Normal", "Easy"],
-            include_lowest=True,
+        # Define the labels for the difficulty levels
+        difficulty_labels = ["Hard", "Normal", "Easy"]
+        # Assign the difficulty levels to the questions in this cluster
+        question_data = assign_cluster_difficulty(
+            question_data, col_edit, breaks, difficulty_labels, i
         )
+    return question_data
+
+
+def get_cluster_data(question_data, cluster_num):
+    """
+    Returns the subset of `question_data` corresponding to the given `cluster_num`.
+
+    Parameters:
+        question_data (pandas.DataFrame): The DataFrame containing the question data.
+        cluster_num (int): The cluster number for which to retrieve the data.
+
+    Returns:
+        pandas.DataFrame: The subset of `question_data` corresponding to `cluster_num`.
+
+    """
+    return question_data.loc[question_data["Cluster_num"] == cluster_num]
+
+
+def assign_cluster_difficulty(
+    question_data, col_edit, breaks, difficulty_labels, cluster_num
+):
+    """
+    Assigns a difficulty level to each question in the given subset of `question_data`
+    based on the accuracy of responses in that subset.
+
+    Parameters:
+        question_data (pandas.DataFrame): The DataFrame containing the question data.
+        col_edit (pandas.DataFrame): The subset of `question_data` to which difficulty levels will be assigned.
+        breaks (list): The breakpoints for the jenks natural breaks algorithm.
+        difficulty_labels (list): The labels for the difficulty levels to be assigned.
+        cluster_num (int): The cluster number for which difficulty levels are being assigned.
+
+    Returns:
+        pandas.DataFrame: The updated DataFrame with the 'Difficulty' column assigned for the given cluster.
+
+    """
+    question_data.loc[
+        question_data["Cluster_num"] == cluster_num, "Difficulty"
+    ] = pd.cut(
+        col_edit["Accuracy"],
+        bins=breaks,
+        labels=difficulty_labels,
+        include_lowest=True,
+    )
     return question_data
 
 
