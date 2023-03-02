@@ -63,6 +63,9 @@ def assign_cluster_difficulty(
         pandas.DataFrame: The updated DataFrame with the 'Difficulty' column assigned for the given cluster.
 
     """
+
+    # Use the pandas cut method to assign a difficulty level based on the accuracy
+    # of responses in the given subset of `question_data`.
     question_data.loc[
         question_data["Cluster_num"] == cluster_num, "Difficulty"
     ] = pd.cut(
@@ -71,4 +74,6 @@ def assign_cluster_difficulty(
         labels=difficulty_labels,
         include_lowest=True,
     )
+
+    # Return the updated DataFrame with the 'Difficulty' column assigned for the given cluster.
     return question_data

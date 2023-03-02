@@ -10,9 +10,16 @@ def read_csv_file(file_path):
 
     Returns:
         pandas.DataFrame: A DataFrame containing all columns from the CSV file.
+
+    Raises:
+        FileNotFoundError: If the specified file path does not exist.
     """
-    # Read the CSV file into a pandas DataFrame
-    data_frame = pd.read_csv(file_path)
+    try:
+        # Read the CSV file into a pandas DataFrame
+        data_frame = pd.read_csv(file_path)
+    except FileNotFoundError:
+        print(f"Error: File not found at {file_path}")
+        return None
 
     # Return the DataFrame
     return data_frame
@@ -28,7 +35,17 @@ def select_columns(data_frame):
     Returns:
         pandas.DataFrame: A DataFrame containing columns 'Problem ID',
         'Accuracy', 'Standard', and 'Cluster'.
+
+    Raises:
+        ValueError: If any of the required columns are not found in the DataFrame.
     """
+    # Check if all the required columns exist in the DataFrame
+    required_cols = ["Problem ID", "Accuracy", "Standard", "Cluster"]
+    missing_cols = set(required_cols) - set(data_frame.columns)
+
+    if len(missing_cols) > 0:
+        raise ValueError(f"Missing columns: {missing_cols}")
+
     # Select only the columns we need and create a new DataFrame
     question_data = pd.DataFrame(
         data_frame, columns=["Problem ID", "Accuracy", "Standard", "Cluster"]
@@ -47,12 +64,19 @@ def convert_accuracy_to_float(question_data):
 
     Returns:
         pandas.DataFrame: The converted DataFrame.
+
+    Raises:
+        ValueError: If the 'Accuracy' column cannot be converted to a float.
     """
-    # Convert the 'Accuracy' column to a float between 0 and 1
-    # by removing the percentage sign and dividing by 100
-    question_data["Accuracy"] = (
-        question_data["Accuracy"].str.rstrip("%").astype(float) / 100
-    )
+    try:
+        # Convert the 'Accuracy' column to a float between 0 and 1
+        # by removing the percentage sign and dividing by 100
+        question_data["Accuracy"] = (
+            question_data["Accuracy"].str.rstrip("%").astype(float) / 100
+        )
+    except ValueError:
+        print("Error: 'Accuracy' column could not be converted to float")
+        return None
 
     # Return the converted DataFrame
     return question_data
@@ -71,6 +95,11 @@ def read_csv_to_dataframe(file_path):
         'Accuracy', 'Standard', and 'Cluster'.
         The 'Accuracy' column is converted to a float between 0 and 1 by
         removing the percentage sign and dividing by 100.
+
+    Raises:
+        FileNotFoundError: If the specified file path does not exist.
+        KeyError: If any of the required columns are missing from the DataFrame.
+        ValueError: If the 'Accuracy' column cannot be converted to a float.
     """
     # Read the CSV file into a pandas DataFrame
     data_frame = read_csv_file(file_path)
@@ -127,17 +156,24 @@ def assign_numbers_to_values(question_data, col_name="Cluster"):
 
     Parameters:
         question_data (pandas.DataFrame): The DataFrame containing the column to assign
-        numbers to.
+            numbers to.
         col_name (str): The name of the column to assign numbers to.
 
     Returns:
-        None. The function modifies the DataFrame in place by adding a new
-        column with the
-        suffix '_num' to store the assigned numbers.
+        pandas.DataFrame: The modified DataFrame with a new column added to store
+            the assigned numbers.
     """
+
+    # Get the unique values in the specified column of the DataFrame
     unique_values = get_unique_values(question_data, col_name)
+
+    # Map each unique value to a unique number
     value_to_number = map_values_to_numbers(unique_values)
+
+    # Apply the mapping to the specified column of the DataFrame, creating a new column
+    # with the assigned numbers
     question_data[f"{col_name}_num"] = question_data[col_name].apply(
         lambda x: value_to_number[x]
     )
+
     return question_data

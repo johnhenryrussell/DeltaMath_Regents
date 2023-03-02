@@ -1,0 +1,9 @@
+df <- read.csv("DMQDATA.csv", header = TRUE)
+
+df <- na.omit(df)
+head(df)
+
+
+library(BAMMtools)
+breaks <- getJenksBreaks(df$Accuracy, 4)
+breaks
