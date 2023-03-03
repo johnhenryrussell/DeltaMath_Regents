@@ -8,7 +8,7 @@ The algorithm selects k clusters based on cluster weights determined from DeltaM
 
 ## Usage
 
-To use the algorithm, you must first prepare your question data in a CSV format. The CSV file should contain the following columns: "Problem ID," "Standard," "Accuracy," and "Question Text." You can provide one CSV file containing questions for multiple standards, or separate CSV files for each standard.
+To use the algorithm, you must first prepare your question data in a CSV format. The CSV file should contain the following columns: "Problem ID," "Accuracy" "Standard," and "Cluster." You can provide one CSV file containing questions for multiple standards, or separate CSV files for each standard.
 
 ## Credits
 
