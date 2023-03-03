@@ -1,4 +1,4 @@
-# DeltaMath_Regents
+# Algebra I Assessment Generator
 
 This algorithm generates personalized Algebra I assessments by selecting k randomized questions of varying difficulty levels for a chosen standard. It requires a CSV file of questions, which can be provided as a single file or separate files for each standard. The algorithm extracts the necessary columns and converts accuracy values to a float between 0 and 1 to create a data frame called "question_data". 
 
