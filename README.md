@@ -5,3 +5,7 @@ This algorithm generates personalized Algebra I assessments by selecting k rando
 Using the Jenks Natural Breaks statistical technique, the algorithm categorizes questions into "Easy", "Normal", and "Hard" difficulty levels based on accuracy scores. The algorithm assigns weight tuples to each level of difficulty to differentiate between assessments, with each tuple representing the weight that each question carries in the assessment process. For example, an "Easy" question has a weight tuple of (75, 20, 0), meaning it contributes 75% to the "Easy" difficulty level, 20% to the "Normal" level, and 0% to the "Hard" level. 
 
 The algorithm selects k clusters based on cluster weights determined from DeltaMath data, from which one question is chosen from each to generate a personalized assessment. The algorithm returns the "Problem ID" and "Cluster" for the selected questions. 
+
+## Usage
+
+To use the algorithm, you must first prepare your question data in a CSV format. The CSV file should contain the following columns: "Problem ID," "Standard," "Accuracy," and "Question Text." You can provide one CSV file containing questions for multiple standards, or separate CSV files for each standard.
