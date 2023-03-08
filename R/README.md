@@ -1,1 +1,0 @@
-# DeltaMath_Regents
