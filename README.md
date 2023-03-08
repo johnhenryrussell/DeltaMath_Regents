@@ -10,6 +10,8 @@ The algorithm selects k clusters based on cluster weights determined from DeltaM
 
 To use the algorithm, you must first prepare your question data in a CSV format. The CSV file should contain the following columns: "Problem ID," "Accuracy" "Standard," and "Cluster." You can provide one CSV file containing questions for multiple standards, or separate CSV files for each standard.
 
+**NOTE** - "Cluster" in the code is equivalent to a DeltaMath "module."
+
 ## Credits
 
 This algorithm was developed by John Russell for DeltaMath.
