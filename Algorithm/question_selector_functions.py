@@ -28,7 +28,7 @@ def generate_cluster_list(question_data, k: int) -> list:
 
 
 def get_difficulty():
-    difficulty = input("Enter difficulty (EASY, NORMAL, HARD, or ALL): ")
+    difficulty = input("Enter difficulty (EASY, NORMAL, HARD): ")
     difficulty = difficulty.lower()
     if difficulty == "easy":
         return "easy_weight"
