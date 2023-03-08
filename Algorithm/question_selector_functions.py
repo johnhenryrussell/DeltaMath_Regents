@@ -67,7 +67,7 @@ def choose_questions(chosen_weight, question_data, k):
         # Select the rows from question_data that match the current cluster number
         cluster_df = question_data[question_data["Cluster_num"] == index]
 
-        # Use the easy_weight column to choose one question from the cluster
+        # Use the chosen_weight column to choose one question from the cluster
         chosen_q = random.choices(
             cluster_df["Problem ID"].tolist(),
             weights=cluster_df[chosen_weight].tolist(),

@@ -15,6 +15,7 @@ def calculate_weight(difficulty):
     """
 
     # Define weights for each difficulty level
+    # These weights are arbitrary. The first index in the tuple represents an "Easy" exam. This must be decided upon.
     if difficulty == "Easy":
         return (75, 20, 0)
     elif difficulty == "Normal":

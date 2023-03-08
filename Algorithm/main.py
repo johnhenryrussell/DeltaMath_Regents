@@ -44,4 +44,4 @@ if __name__ == "__main__":
         question_list,
     ) = get_weight_and_question_lists(question_data)
 
-    choose_questions(get_difficulty(), question_data, 100)
+    choose_questions(get_difficulty(), question_data, 10)
